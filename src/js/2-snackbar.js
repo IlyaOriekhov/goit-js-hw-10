@@ -4,64 +4,40 @@ import iziToast from 'izitoast';
 // Додатковий імпорт стилів
 import 'izitoast/dist/css/iziToast.min.css';
 
-const formOfPromises = document.querySelector('.form');
+const form = document.querySelector('.form');
+form.addEventListener('submit', handleSubmit);
 
-formOfPromises.addEventListener('submit', e => {
-  e.preventDefault();
-  const userDelay = e.target.elements.delay.value;
-  const promiseType = e.target.elements.state.value;
+function handleSubmit(event) {
+  event.preventDefault();
 
-  makePromise(userDelay, promiseType)
-    .then(fulfilledDelay => {
-      successToastOpt.message = `Fulfilled promise in ${fulfilledDelay}ms`;
-      iziToast.success(successToastOpt);
-    })
-    .catch(errorDelay => {
-      errorToastOpt.message = `Rejected promise in ${errorDelay}ms`;
-      iziToast.error(errorToastOpt);
-    });
-});
+  const delayInput = document.querySelector('[name="delay"]');
+  const stateInput = document.querySelector('[name="state"]:checked');
 
-function makePromise(delay, typeOfPromise) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (typeOfPromise === 'fulfilled') {
-        resolve(delay);
-      } else {
-        reject(delay);
-      }
-    }, delay);
+  const delay = parseInt(delayInput.value, 10);
+
+  const promise = new Promise((resolve, reject) => {
+    if (delay <= 0) {
+      reject('Invalid delay value');
+    } else {
+      setTimeout(() => {
+        stateInput.value === 'fulfilled' ? resolve(delay) : reject(delay);
+      }, delay);
+    }
   });
+
+  promise
+    .then(value => {
+      iziToast.success({
+        position: 'topRight',
+        title: 'Success!',
+        message: `Fulfilled promise in ${value}ms`,
+      });
+    })
+    .catch(value => {
+      iziToast.error({
+        position: 'topRight',
+        title: 'Error!',
+        message: `Rejected promise in ${value}ms`,
+      });
+    });
 }
-
-const successToastOpt = {
-  title: 'OK',
-  titleSize: '16px',
-  titleLineHeight: 1.5,
-  messageColor: '#fff',
-  messageSize: '16px',
-  messageLineHeight: 1.5,
-  backgroundColor: '#59a10d',
-  position: 'topRight',
-  theme: 'dark',
-  closeOnEscape: true,
-  transitionIn: 'bounceInDown',
-  transitionOut: 'fadeOutUp',
-};
-
-const errorToastOpt = {
-  title: 'Error',
-  titleSize: '16px',
-  titleLineHeight: 1.5,
-  messageSize: '16px',
-  messageLineHeight: 1.5,
-  messageColor: '#fff',
-  backgroundColor: '#ef4040',
-  iconUrl: toastIcon,
-  iconColor: '#fff',
-  position: 'topRight',
-  theme: 'dark',
-  closeOnEscape: true,
-  transitionIn: 'bounceInDown',
-  transitionOut: 'fadeOutUp',
-};
